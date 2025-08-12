@@ -7,4 +7,4 @@ The scanner does not work completely yet, but it performs an nmap scan and displ
 
 The future goal is to make the program find the active CVEs on the network and report them. 
 
-Requires nmap to run.
+Requires nmap, jq, and curl to run.
