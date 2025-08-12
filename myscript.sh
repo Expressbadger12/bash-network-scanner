@@ -45,7 +45,6 @@ function vulns {
 	echo "$SCAN_RESULTS" | grep "VULNERABLE"
 	echo "$SCAN_RESULTS" | grep "CVE"
 	echo ""
-	#note: these are hardcoded values because I can't read nmap input yet, nor can I access CVE lists on the internet. 
 }
 
 function recommend {
@@ -55,7 +54,7 @@ function recommend {
 	echo "Vanquishing spell"
 	echo "Change passwords"
 	echo ""
-	#Note these are also hardcoded for the same reasons the above ones are.
+	#Note these are also hardcoded for now
 }
 
 function footer {
