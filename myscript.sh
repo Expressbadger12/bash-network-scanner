@@ -62,4 +62,36 @@ function footer {
 	echo "----Report Created $(date)----"
 }
 
+query_nvd() {
+	local product="$1"
+	local version="$2"
+
+	local results_limit=3
+
+	echo
+	echo "Querying NVD for vulnerabilities in: $product $version...."
+
+	local search_query
+	search_query=$(echo "$product $version" | sed 's/ /%20/g')
+
+	local nvd_api_url="https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=${search_query}&resultsPerPage=${results_limit}"
+
+	local vulnerabilities_json
+	vulnerabilities_json=$(curl -s "$nvd_api_url")
+
+	#error checking
+
+	if [[ -z "$vulnerabilities_json" ]]; then
+		echo " [!] NVD API ERROR: $(echo "$vulnerabilities_json" | jq -r '.message')"
+		return
+	fi
+	if ! echo "$vulnerabilities_json" | jq -e '.vulnerabilities[0]' > /dev/null; then
+        echo "  [+] No vulnerabilities found in NVD for this keyword search."
+        return
+    fi
+	#no more error checking
+	 echo "$vulnerabilities_json" | jq -r \
+        '.vulnerabilities[] | "  CVE ID: \(.cve.id)\n  Description: \((.cve.descriptions[] | select(.lang=="en")).value | gsub("\n"; " "))\n  Severity: \(.cve.metrics.cvssMetricV31[0].cvssData.baseSeverity // .cve.metrics.cvssMetricV2[0].cvssData.baseSeverity // "N/A")\n---"'
+}
+
 main "$TARGET"  > $OUTPUT
