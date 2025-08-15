@@ -42,10 +42,28 @@ function vulns {
 	echo "--Potential Vulnerabilities Identified--"
 	echo ""
 	SCAN_RESULTS=$(nmap -sV --script vuln "$TARGET")
-	echo "$SCAN_RESULTS" | grep "VULNERABLE"
-	echo "$SCAN_RESULTS" | grep "CVE"
+	# echo "$SCAN_RESULTS" | grep "VULNERABLE"
+	# echo "$SCAN_RESULTS" | grep "CVE"
+		echo "-- Analyzing Service Versions --"
+
+	echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
+		product=$(echo "$line" | awk '{print $4}')
+		version=$(echo "$line" | awk '{print $5}')
+		echo "Detected: $product $version"
+		query_nvd "$product" "$version"
+	done
 	echo ""
 }
+
+
+	# echo "-- Analyzing Service Versions --"
+
+	# echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
+	# 	product=$(echo "$line" | awk '{print $4}')
+	# 	version=$(echo "$line" | awk '{print $5}')
+	# 	echo "Detected: $product $version"
+	# 	query_nvd "$product" "$version"
+	# done
 
 function recommend {
 	echo "--Recommendations for Remediation--"
