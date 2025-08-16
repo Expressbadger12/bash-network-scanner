@@ -15,10 +15,6 @@ Detected: OpenSSH 6.6.1p1
 
 Querying NVD for vulnerabilities in: OpenSSH 6.6.1p1....
   [+] No vulnerabilities found in NVD for this keyword search.
-Detected:  
-
-Querying NVD for vulnerabilities in:  ....
- [!] NVD API ERROR: 
 Detected: Apache httpd
 
 Querying NVD for vulnerabilities in: Apache httpd....
@@ -27,10 +23,6 @@ Detected: Nping echo
 
 Querying NVD for vulnerabilities in: Nping echo....
   [+] No vulnerabilities found in NVD for this keyword search.
-Detected:  
-
-Querying NVD for vulnerabilities in:  ....
- [!] NVD API ERROR: 
 
 --Recommendations for Remediation--
 
@@ -39,4 +31,4 @@ Vanquishing spell
 Change passwords
 
 ----This Concludes Scan of scanme.nmap.org----
-----Report Created Thu, Aug 14, 2025  7:03:00 PM----
+----Report Created Fri, Aug 15, 2025  7:36:16 PM----
