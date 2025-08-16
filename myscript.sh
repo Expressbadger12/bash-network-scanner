@@ -57,7 +57,7 @@ function vulns {
 
 	echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
 		product=$(echo "$line" | awk '{print $4}')
-		version=$(echo "$line" | awk '{print $5}' | sed 's/([^]*)//')
+		version=$(echo "$line" | awk '{print $5}' | sed 's/([^)]*)//g')
 
 		if [[ -z "$product" || -z "$version" ]]; then
     		continue
