@@ -2,6 +2,7 @@
 
 OUTPUT=output.txt
 TARGET=$1
+NMOUTPUT=nmoutput.txt
 
 function main {
 
@@ -10,10 +11,14 @@ if [[ $# != 1 ]]; then
     exit 1
 fi
 
+touch "$NMOUTPUT"
+
 touch "$OUTPUT"
 
 {
 header
+
+runthing
 
 ports
 
@@ -33,22 +38,31 @@ function header {
 	echo ""
 }
 
+function runthing {
+	nmap -sV --script vuln $TARGET > $NMOUTPUT
+}
+
 function ports {
 	echo "--Open Ports and Detected Services--"
-	nmap -sV --script vuln $TARGET | grep "open"
+	cat $NMOUTPUT | grep "open"
 }
 
 function vulns {
 	echo "--Potential Vulnerabilities Identified--"
 	echo ""
-	SCAN_RESULTS=$(nmap -sV --script vuln "$TARGET")
+	SCAN_RESULTS=$(cat $NMOUTPUT)
 	# echo "$SCAN_RESULTS" | grep "VULNERABLE"
 	# echo "$SCAN_RESULTS" | grep "CVE"
 		echo "-- Analyzing Service Versions --"
 
 	echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
 		product=$(echo "$line" | awk '{print $4}')
-		version=$(echo "$line" | awk '{print $5}')
+		version=$(echo "$line" | awk '{print $5}' | sed 's/([^]*)//')
+
+		if [[ -z "$product" || -z "$version" ]]; then
+    		continue
+		fi
+
 		echo "Detected: $product $version"
 		query_nvd "$product" "$version"
 	done
