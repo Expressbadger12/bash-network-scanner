@@ -22,6 +22,7 @@ Requires nmap, jq, and curl to run.
 ### Installation of Dependencies
 
 we're doing -y 'cause you trust me, don't you?
+
 **Ubuntu/Debian (the normal distro):**
 
 ```bash
