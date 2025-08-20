@@ -16,52 +16,68 @@ This script uses nmap to scan a given network for preexisting vulnerabilities by
 **Made with love**: and maybe a little bit of frustration 
 
 ## Requirements
+
 Requires nmap, jq, and curl to run.
 
 ### Installation of Dependencies
 
 we're doing -y 'cause you trust me, don't you?
 **Ubuntu/Debian (the normal distro):**
+
 ```bash
 sudo apt update
 sudo apt install -y nmap jq curl
 ```
 
 **Fedora**
+
 ```bash
 sudo dnf install -y nmap jq curl
 ```
 
 **CentOS / RHEL (I haven't even heard of this one)**
+
 ```bash
 sudo yum install -y nmap jq curl
 ```
 
 **Arch Linux**
+
 ```bash
 sudo pacman -Sy --noconfirm nmap jq curl
 ```
 
 **openSUSE**
+
 ```bash
 sudo zypper install -y nmap jq curl
 ```
 
 **macOS (with Homebrew)**
+
 ```bash
 brew install nmap jq curl
 ```
 
 ## Installation of script
 
+Download the script from gethub and unzip the file
+
 ## Usage
 
-## Output
+The script must be run in the directory in which they exist
+
+### Syntax
+
+```bash
+./myscript.sh <target IP or hostname>
+```
+
+### Output
+
+The script creates a file called output.txt that contains the report and data from the scan. 
+The script also creates a file called nmoutput.xml and outherworld.txt which are used by the script for formatting. They can be ignored by and even deleted by the user.
 
 ## Disclaimer
 
-
-The scanner does not work completely yet, but it performs an nmap scan and displays the open ports. It does not yet look through the CVE list. 
-
-The future goal is to make the program find the active CVEs on the network and report them. 
-
+This tool is designed to be used for security purposes only. Only use this script on networks you have permission to use it on. I am not responsible for anything you do with this. 
