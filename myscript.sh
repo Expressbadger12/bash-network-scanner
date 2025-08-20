@@ -1,8 +1,10 @@
 #!/bin/bash
 
+set -euo pipefail
+
 OUTPUT=output.txt
 TARGET=$1
-NMOUTPUT=nmoutput.txt
+NMOUTPUT=nmoutput.xml
 
 function main {
 
@@ -27,7 +29,7 @@ vulns
 recommend
 
 footer
-} > "$OUTPUT"
+}
 
 }
 
@@ -39,33 +41,46 @@ function header {
 }
 
 function runthing {
-	nmap -sV --script vuln $TARGET > $NMOUTPUT
+	nmap -sV --script vuln -oX $NMOUTPUT $TARGET 
 }
 
 function ports {
 	echo "--Open Ports and Detected Services--"
-	cat $NMOUTPUT | grep "open"
+    sudo nmap -sV "$target" | grep "open"
 }
 
 function vulns {
 	echo "--Potential Vulnerabilities Identified--"
 	echo ""
-	SCAN_RESULTS=$(cat $NMOUTPUT)
+	SCAN_RESULTS=$NMOUTPUT
 	# echo "$SCAN_RESULTS" | grep "VULNERABLE"
 	# echo "$SCAN_RESULTS" | grep "CVE"
 		echo "-- Analyzing Service Versions --"
 
-	echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
-		product=$(echo "$line" | awk '{print $4}')
-		version=$(echo "$line" | awk '{print $5}' | sed 's/([^)]*)//g')
+	# echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
+	# 	product=$(echo "$line" | awk '{print $4}')
+	# 	version=$(echo "$line" | awk '{print $5}' | sed 's/([^)]*)//g')
 
-		if [[ -z "$product" || -z "$version" ]]; then
-    		continue
-		fi
+	# 	if [[ -z "$product" || -z "$version" ]]; then
+    # 		continue
+	# 	fi
 
-		echo "Detected: $product $version"
-		query_nvd "$product" "$version"
+	# 	echo "Detected: $product $version"
+	# 	query_nvd "$product" "$version"
+	# done
+
+	grep '<service.*product=.*version=' "$SCAN_RESULTS" | \
+	sed -n 's/.*product="\([^"]*\)".*version="\([^"]*\)".*/\1 \2/p' | \
+	while read -r product version; do
+    # Clean up version string (remove parenthetical info)
+    version=$(echo "$version" | sed 's/([^)]*)//g' | xargs)
+    
+    if [[ -n "$product" && -n "$version" && "$version" != "?" ]]; then
+        echo "Detected: $product $version"
+        query_nvd "$product" "$version"
+    fi
 	done
+
 	echo ""
 }
 
