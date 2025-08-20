@@ -1,15 +1,56 @@
 # bash-network-scanner
 
-## Overview
 A bash script to scan for network vulnerabilities
 
+## Overview
+
+This script uses nmap to scan a given network for preexisting vulnerabilities by comparing the output of the nmap scan to the contents of a CVE database. It then takes the data it gathered and formats it in a professional report to be easily digested. 
+
 ## Features
-This project aims to use nmap to scan a given network and parse through the results to find vulnerabilities on the network and then finds those vulnerabilities on a CVE list. 
+
+**Network scanning**: Scans ports and invesntigates services
+**Automated report**: Makes a report based on the information gathered from the scan with no effort required on the user's end
+**CVE database querying**: Checks scan results against trusted CVE databases
+**Appropriate recommendations**: Gives accurate recommendations based on the vulnerabilities found
+**Easy to use**: I break the whole thing down in this readme
+**Made with love**: and maybe a little bit of frustration 
 
 ## Requirements
 Requires nmap, jq, and curl to run.
 
-## Installation of Dependencies
+### Installation of Dependencies
+
+we're doing -y 'cause you trust me, don't you?
+**Ubuntu/Debian (the normal distro):**
+```bash
+sudo apt update
+sudo apt install -y nmap jq curl
+```
+
+**Fedora**
+```bash
+sudo dnf install -y nmap jq curl
+```
+
+**CentOS / RHEL (I haven't even heard of this one)**
+```bash
+sudo yum install -y nmap jq curl
+```
+
+**Arch Linux**
+```bash
+sudo pacman -Sy --noconfirm nmap jq curl
+```
+
+**openSUSE**
+```bash
+sudo zypper install -y nmap jq curl
+```
+
+**macOS (with Homebrew)**
+```bash
+brew install nmap jq curl
+```
 
 ## Installation of script
 

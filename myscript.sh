@@ -5,6 +5,7 @@ set -euo pipefail
 OUTPUT=output.txt
 TARGET=$1
 NMOUTPUT=nmoutput.xml
+OTHER=otherworld.txt
 
 function main {
 
@@ -16,6 +17,10 @@ fi
 touch "$NMOUTPUT"
 
 touch "$OUTPUT"
+
+echo "" > $OUTPUT
+
+touch "$OTHER"
 
 {
 header
@@ -34,28 +39,29 @@ footer
 }
 
 function header {
-	echo "----Network Security Scan Report----"
-	echo ""
-	echo "Target IP: $TARGET"
-	echo ""
+	echo "----Network Security Scan Report----" >> $OUTPUT
+	echo "" >> $OUTPUT
+	echo "Target IP: $TARGET" >> $OUTPUT
+	echo "" >> $OUTPUT
 }
 
 function runthing {
-	nmap -sV --script vuln -oX $NMOUTPUT $TARGET 
+	echo "runthing nmap going"
+	nmap -sV --script vuln -oX $NMOUTPUT -oN $OTHER $TARGET >> /dev/null 2>&1
+	echo "runthing nmap done"
 }
 
 function ports {
-	echo "--Open Ports and Detected Services--"
-    sudo nmap -sV "$target" | grep "open"
+	echo "--Open Ports and Detected Services--" >> $OUTPUT
+	awk '$2 == "open" { print }' "$OTHER" >> "$OUTPUT"
 }
 
 function vulns {
-	echo "--Potential Vulnerabilities Identified--"
-	echo ""
-	SCAN_RESULTS=$NMOUTPUT
+	echo "--Potential Vulnerabilities Identified--" >> $OUTPUT
+	echo "" >> $OUTPUT
 	# echo "$SCAN_RESULTS" | grep "VULNERABLE"
 	# echo "$SCAN_RESULTS" | grep "CVE"
-		echo "-- Analyzing Service Versions --"
+		echo "-- Analyzing Service Versions --" >> $OUTPUT
 
 	# echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
 	# 	product=$(echo "$line" | awk '{print $4}')
@@ -69,19 +75,21 @@ function vulns {
 	# 	query_nvd "$product" "$version"
 	# done
 
-	grep '<service.*product=.*version=' "$SCAN_RESULTS" | \
+	grep '<service.*product=.*version=' "$NMOUTPUT" | \
 	sed -n 's/.*product="\([^"]*\)".*version="\([^"]*\)".*/\1 \2/p' | \
 	while read -r product version; do
+	echo $product 
+	echo $version
     # Clean up version string (remove parenthetical info)
     version=$(echo "$version" | sed 's/([^)]*)//g' | xargs)
     
     if [[ -n "$product" && -n "$version" && "$version" != "?" ]]; then
-        echo "Detected: $product $version"
+        echo "Detected: $product $version" >> $OUTPUT
         query_nvd "$product" "$version"
     fi
 	done
 
-	echo ""
+	echo "" >> $OUTPUT
 }
 
 
@@ -95,18 +103,18 @@ function vulns {
 	# done
 
 function recommend {
-	echo "--Recommendations for Remediation--"
-	echo ""
-	echo "Update drivers"
-	echo "Vanquishing spell"
-	echo "Change passwords"
-	echo ""
+	echo "--Recommendations for Remediation--" >> $OUTPUT
+	echo "" >> $OUTPUT
+	echo "Update drivers" >> $OUTPUT
+	echo "Vanquishing spell" >> $OUTPUT
+	echo "Change passwords" >> $OUTPUT
+	echo "" >> $OUTPUT
 	#Note these are also hardcoded for now
 }
 
 function footer {
-	echo "----This Concludes Scan of $TARGET----"
-	echo "----Report Created $(date)----"
+	echo "----This Concludes Scan of $TARGET----" >> $OUTPUT
+	echo "----Report Created $(date)----" >> $OUTPUT
 }
 
 query_nvd() {
@@ -138,7 +146,7 @@ query_nvd() {
     fi
 	#no more error checking
 	 echo "$vulnerabilities_json" | jq -r \
-        '.vulnerabilities[] | "  CVE ID: \(.cve.id)\n  Description: \((.cve.descriptions[] | select(.lang=="en")).value | gsub("\n"; " "))\n  Severity: \(.cve.metrics.cvssMetricV31[0].cvssData.baseSeverity // .cve.metrics.cvssMetricV2[0].cvssData.baseSeverity // "N/A")\n---"'
+        '.vulnerabilities[] | "  CVE ID: \(.cve.id)\n  Description: \((.cve.descriptions[] | select(.lang=="en")).value | gsub("\n"; " "))\n  Severity: \(.cve.metrics.cvssMetricV31[0].cvssData.baseSeverity // .cve.metrics.cvssMetricV2[0].cvssData.baseSeverity // "N/A")\n---"' >> $OUTPUT
 }
 
-main "$TARGET"  > $OUTPUT
+main "$TARGET"
