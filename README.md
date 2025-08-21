@@ -78,7 +78,7 @@ The script must be run in the directory in which they exist
 ### Output
 
 The script creates a file called output.txt that contains the report and data from the scan. 
-The script will also create an html file called report_<target>.html if you prefer html
+The script will also create an html file called report_(target).html if you prefer html
 The script also creates a file called outherworld.txt which are used by the script for formatting. They can be ignored by and even deleted by the user.
 
 ## Disclaimer
