@@ -90,7 +90,7 @@ function vulns {
 
 	display_version="$version"
 
-	echo "Detected: $product $display_version"
+	#echo "Detected: $product $display_version"
 
     # Print to output file
 	if [[ "$product" == "tcpwrapped" ]]; then
@@ -166,8 +166,8 @@ query_nvd() {
 
 	local results_limit=10
 
-	echo
-	echo "Querying NVD for vulnerabilities in: $product $version...."
+	#echo
+	#echo "Querying NVD for vulnerabilities in: $product $version...."
 
 	local search_query
 	search_query=$(echo "$product $version" | sed 's/ /%20/g')
@@ -180,11 +180,11 @@ query_nvd() {
 	#error checking
 
 	if [[ -z "$vulnerabilities_json" ]]; then
-		echo " [!] NVD API ERROR: $(echo "$vulnerabilities_json" | jq -r '.message')"
+		#echo " [!] NVD API ERROR: $(echo "$vulnerabilities_json" | jq -r '.message')"
 		return
 	fi
 	if ! echo "$vulnerabilities_json" | jq -e '.vulnerabilities[0]' > /dev/null; then
-        echo "  [+] No vulnerabilities found in NVD for this keyword search."
+        #echo "  [+] No vulnerabilities found in NVD for this keyword search."
         return
     fi
 	#no more error checking
