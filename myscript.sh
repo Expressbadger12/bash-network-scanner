@@ -192,25 +192,26 @@ query_nvd() {
         '.vulnerabilities[] | "  CVE ID: \(.cve.id)\n  Description: \((.cve.descriptions[] | select(.lang=="en")).value | gsub("\n"; " "))\n  Severity: \(.cve.metrics.cvssMetricV31[0].cvssData.baseSeverity // .cve.metrics.cvssMetricV2[0].cvssData.baseSeverity // "N/A")\n---"' >> $OUTPUT
 }
 
+
 function summary {
 
 	 echo "--Scan Summary--" >> $OUTPUT
 
-        # Count lines with open ports correctly
+        # Count lines with open ports correctlyac
         open_ports=$(awk '/\/tcp.*open/ {count++} END {print count+0}' "$OTHER")
 
         # Count vulnerabilities from output
-        vuln_count=$(grep -c "CVE ID:" "$OUTPUT" 2>/dev/null || echo "0")
-        high_count=$(grep -c "Severity: HIGH" "$OUTPUT" 2>/dev/null || echo "0")
-        medium_count=$(grep -c "Severity: MEDIUM" "$OUTPUT" 2>/dev/null || echo "0")
-        low_count=$(grep -c "Severity: LOW" "$OUTPUT" 2>/dev/null || echo "0")
-        na_count=$(grep -c "Severity: N/A" "$OUTPUT" 2>/dev/null || echo "0")
+        vuln_count=$(grep -c "CVE ID:" "$OUTPUT" 2>/dev/null || true)
+        high_count=$(grep -c "Severity: HIGH" "$OUTPUT" 2>/dev/null || true)
+        medium_count=$(grep -c "Severity: MEDIUM" "$OUTPUT" 2>/dev/null || true)
+        low_count=$(grep -c "Severity: LOW" "$OUTPUT" 2>/dev/null || true)
+        na_count=$(grep -c "Severity: N/A" "$OUTPUT" 2>/dev/null || true)
 
         echo "Total open ports: $open_ports" >> "$OUTPUT"
         echo "Detected vulnerabilities: $vuln_count (High: $high_count, Medium: $medium_count, Low: $low_count, N/A: $na_count)" >> "$OUTPUT"
         echo "" >> "$OUTPUT"
 }
-
+#generate html for easy lookn
 function generate_html {
     local html_file="report_$TARGET.html"
 
