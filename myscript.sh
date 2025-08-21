@@ -2,26 +2,30 @@
 
 set -euo pipefail
 
-OUTPUT=output.txt
-TARGET=$1
-NMOUTPUT=nmoutput.xml
-OTHER=otherworld.txt
-
-function main {
-
+#check that there's an argument and give error if not an issue
 if [[ $# != 1 ]]; then
     echo "Must have a target IP. Format: $0 <target ip>" >&2
     exit 1
 fi
 
+#declaring some variables for later
+OUTPUT=output.txt
+TARGET=$1
+NMOUTPUT=nmoutput.xml
+OTHER=otherworld.txt
+
+#function that runs all the otherfunctions and creates the needed files
+function main {
+
 touch "$NMOUTPUT"
 
 touch "$OUTPUT"
-
+#clear output
 echo "" > $OUTPUT
 
 touch "$OTHER"
 
+#I'm not going to lie to you, I did this part so long ago I don't remember why the functions are in brackets but it works so who cares
 {
 header
 
@@ -38,6 +42,7 @@ footer
 
 }
 
+#pretty standard header. Tells who the target is
 function header {
 	echo "----Network Security Scan Report----" >> $OUTPUT
 	echo "" >> $OUTPUT
@@ -45,62 +50,57 @@ function header {
 	echo "" >> $OUTPUT
 }
 
+#run nmap and save the output as xml document and as human readable document
 function runthing {
 	echo "runthing nmap going"
 	nmap -sV --script vuln -oX $NMOUTPUT -oN $OTHER $TARGET >> /dev/null 2>&1
 	echo "runthing nmap done"
 }
-
+#Read the human readable version and print open ports
 function ports {
 	echo "--Open Ports and Detected Services--" >> $OUTPUT
 	awk '$2 == "open" { print }' "$OTHER" >> "$OUTPUT"
 }
 
+#funky one here so we look at the human readable version for the product the version and the other little stuff and then query the CVE database for it
 function vulns {
 	echo "--Potential Vulnerabilities Identified--" >> $OUTPUT
 	echo "" >> $OUTPUT
-	# echo "$SCAN_RESULTS" | grep "VULNERABLE"
-	# echo "$SCAN_RESULTS" | grep "CVE"
-		echo "-- Analyzing Service Versions --" >> $OUTPUT
 
-	# echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
-	# 	product=$(echo "$line" | awk '{print $4}')
-	# 	version=$(echo "$line" | awk '{print $5}' | sed 's/([^)]*)//g')
+	echo "-- Analyzing Service Versions --" >> $OUTPUT
+	echo "" >> $OUTPUT
+	
 
-	# 	if [[ -z "$product" || -z "$version" ]]; then
-    # 		continue
-	# 	fi
+	awk '$2 == "open" { 
+        product = $4
+        version = $5
+		extra = $6
+        # Replace "?" with empty string
+        if (version == "?") version = ""
+		if (extra == "?") extra = ""
+        if (product != "") { 
+		print product, version, extra } 
+    }' "$OTHER" | while read -r product version extra; do
+	#print to terminal
 
-	# 	echo "Detected: $product $version"
-	# 	query_nvd "$product" "$version"
-	# done
+	display_version="$version"
+    [[ -n "$extra" ]] && display_version="$display_version $extra"
 
-	grep '<service.*product=.*version=' "$NMOUTPUT" | \
-	sed -n 's/.*product="\([^"]*\)".*version="\([^"]*\)".*/\1 \2/p' | \
-	while read -r product version; do
-	echo $product 
-	echo $version
-    # Clean up version string (remove parenthetical info)
-    version=$(echo "$version" | sed 's/([^)]*)//g' | xargs)
-    
-    if [[ -n "$product" && -n "$version" && "$version" != "?" ]]; then
-        echo "Detected: $product $version" >> $OUTPUT
-        query_nvd "$product" "$version"
-    fi
+	echo "Detected: $product $display_version"
+
+    # Print to output file
+	if [[ "$product" == "tcpwrapped" ]]; then
+    	echo "Detected: tcpwrapped (no product info, cannot query NVD)" >> "$OUTPUT"
+	else
+    	echo "Detected: $product $display_version" >> "$OUTPUT"
+
+    # Query NVD for this product/version
+    	query_nvd "$product" "$display_version"
+	fi
 	done
 
 	echo "" >> $OUTPUT
 }
-
-
-	# echo "-- Analyzing Service Versions --"
-
-	# echo "$SCAN_RESULTS" | grep "open" | while read -r line; do 
-	# 	product=$(echo "$line" | awk '{print $4}')
-	# 	version=$(echo "$line" | awk '{print $5}')
-	# 	echo "Detected: $product $version"
-	# 	query_nvd "$product" "$version"
-	# done
 
 function recommend {
 	echo "--Recommendations for Remediation--" >> $OUTPUT
