@@ -82,7 +82,8 @@ function vulns {
     # If version is unknown, skip
     if (version == "?" || product == "?") next;
     # Remove extra trailing words from version (keep only first part)
-	sub(/[^0-9.].*$/, "", version);
+	gsub(/[()].*$/, "", version); 
+	sub(/p[0-9]+$/, "", version); 
 	print product, version;
 	}' "$OTHER" | while read -r product version; do
 	#print to terminal
@@ -163,7 +164,7 @@ query_nvd() {
 	local product="$1"
 	local version="$2"
 
-	local results_limit=20
+	local results_limit=10
 
 	echo
 	echo "Querying NVD for vulnerabilities in: $product $version...."
@@ -193,17 +194,21 @@ query_nvd() {
 
 function summary {
 
-	echo "--Scan Summary--" >> $OUTPUT
-	open_ports=$(awk '$2=="open"{count++} END{print count+0}' "$OTHER")
+	 echo "--Scan Summary--" >> $OUTPUT
 
-	vuln_count=$(grep -c "CVE ID:" "$OUTPUT")
-    high_count=$(grep -c "Severity: HIGH" "$OUTPUT")
-    medium_count=$(grep -c "Severity: MEDIUM" "$OUTPUT")
-    low_count=$(grep -c "Severity: LOW" "$OUTPUT")
+        # Count lines with open ports correctly
+        open_ports=$(awk '/\/tcp.*open/ {count++} END {print count+0}' "$OTHER")
 
-    echo "Total open ports: $open_ports" >> "$OUTPUT"
-    echo "Detected vulnerabilities: $vuln_count (High: $high_count, Medium: $medium_count, Low: $low_count)" >> "$OUTPUT"
-	echo "" >> $OUTPUT
+        # Count vulnerabilities from output
+        vuln_count=$(grep -c "CVE ID:" "$OUTPUT" 2>/dev/null || echo "0")
+        high_count=$(grep -c "Severity: HIGH" "$OUTPUT" 2>/dev/null || echo "0")
+        medium_count=$(grep -c "Severity: MEDIUM" "$OUTPUT" 2>/dev/null || echo "0")
+        low_count=$(grep -c "Severity: LOW" "$OUTPUT" 2>/dev/null || echo "0")
+        na_count=$(grep -c "Severity: N/A" "$OUTPUT" 2>/dev/null || echo "0")
+
+        echo "Total open ports: $open_ports" >> "$OUTPUT"
+        echo "Detected vulnerabilities: $vuln_count (High: $high_count, Medium: $medium_count, Low: $low_count, N/A: $na_count)" >> "$OUTPUT"
+        echo "" >> "$OUTPUT"
 }
 
 function generate_html {
