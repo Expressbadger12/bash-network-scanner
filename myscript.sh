@@ -37,7 +37,11 @@ vulns
 
 recommend
 
+summary
+
 footer
+
+generate_html
 }
 
 }
@@ -52,10 +56,7 @@ function header {
 
 #run nmap and save the output as xml document and as human readable document
 function runthing {
-	echo "runthing nmap going"
-#	nmap -sV --script vuln -oX $NMOUTPUT -oN $OTHER $TARGET >> /dev/null 2>&1
-	nmap -sV --script vuln -oN $OTHER $TARGET >> /dev/null 2>&1
-	echo "runthing nmap done"
+	nmap -A --script vuln -oN $OTHER $TARGET >> /dev/null 2>&1
 }
 #Read the human readable version and print open ports
 function ports {
@@ -75,20 +76,18 @@ function vulns {
 	echo "" >> $OUTPUT
 	echo "Parsing results for the online CVE query" >> $OUTPUT
 	#this checks against the online nist thing
-	awk '$2 == "open" { 
-        product = $4
-        version = $5
-		extra = $6
-        # Replace "?" with empty string
-        if (version == "?") version = ""
-		if (extra == "?") extra = ""
-        if (product != "") { 
-		print product, version, extra } 
-    }' "$OTHER" | while read -r product version extra; do
+	awk '$2 == "open" {
+    product = $4;
+    version = $5;
+    # If version is unknown, skip
+    if (version == "?" || product == "?") next;
+    # Remove extra trailing words from version (keep only first part)
+	sub(/[^0-9.].*$/, "", version);
+	print product, version;
+	}' "$OTHER" | while read -r product version; do
 	#print to terminal
 
 	display_version="$version"
-    [[ -n "$extra" ]] && display_version="$display_version $extra"
 
 	echo "Detected: $product $display_version"
 
@@ -191,5 +190,50 @@ query_nvd() {
 	 echo "$vulnerabilities_json" | jq -r \
         '.vulnerabilities[] | "  CVE ID: \(.cve.id)\n  Description: \((.cve.descriptions[] | select(.lang=="en")).value | gsub("\n"; " "))\n  Severity: \(.cve.metrics.cvssMetricV31[0].cvssData.baseSeverity // .cve.metrics.cvssMetricV2[0].cvssData.baseSeverity // "N/A")\n---"' >> $OUTPUT
 }
+
+function summary {
+
+	echo "--Scan Summary--" >> $OUTPUT
+	open_ports=$(awk '$2=="open"{count++} END{print count+0}' "$OTHER")
+
+	vuln_count=$(grep -c "CVE ID:" "$OUTPUT")
+    high_count=$(grep -c "Severity: HIGH" "$OUTPUT")
+    medium_count=$(grep -c "Severity: MEDIUM" "$OUTPUT")
+    low_count=$(grep -c "Severity: LOW" "$OUTPUT")
+
+    echo "Total open ports: $open_ports" >> "$OUTPUT"
+    echo "Detected vulnerabilities: $vuln_count (High: $high_count, Medium: $medium_count, Low: $low_count)" >> "$OUTPUT"
+	echo "" >> $OUTPUT
+}
+
+function generate_html {
+    local html_file="report_$TARGET.html"
+
+    echo "<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Network Scan Report - $TARGET</title>
+<style>
+body { font-family: Arial, serif; margin: 20px; }
+h1 { color: #333; }
+h2 { color: #555; }
+pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<h1>Network Security Scan Report</h1>
+<h2>Target: $TARGET</h2>
+<pre>" > "$html_file"
+
+    cat "$OUTPUT" >> "$html_file"
+
+    echo "</pre>
+</body>
+</html>" >> "$html_file"
+
+    echo "HTML report generated: $html_file"
+}
+
 
 main "$TARGET"
